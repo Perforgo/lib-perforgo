@@ -8,9 +8,6 @@ jobs:
     publish:
         name: Publish to NPM
         runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            id-token: write
         steps:
             - uses: actions/checkout@v3
             # Setup .npmrc file to publish to npm
@@ -21,6 +18,6 @@ jobs:
                   scope: "@perforgo"
             - run: npm install
             - run: npm run build
-            - run: npm publish --provenance --access public
+            - run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
