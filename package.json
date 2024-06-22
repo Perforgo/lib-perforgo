@@ -9,8 +9,10 @@
 	"files": [
 		"dist"
 	],
+	"target": "esnext",
 	"main": "./dist/core.cjs",
 	"module": "./dist/core.js",
+	"types": "./dist/perforgo.d.ts",
 	"exports": {
 		".": {
 			"import": "./dist/core.js",
@@ -26,7 +28,8 @@
 	"devDependencies": {
 		"release-it": "^17.4.0",
 		"typescript": "^5.2.2",
-		"vite": "^5.2.0"
+		"vite": "^5.2.0",
+		"vite-plugin-dts": "^3.9.1"
 	},
 	"dependencies": {
 		"uid": "^2.0.2",
