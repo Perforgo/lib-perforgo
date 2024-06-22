@@ -1,8 +1,11 @@
 {
-	"name": "perforgo-js",
-	"private": true,
+	"name": "@perforgo/lib",
+	"private": false,
 	"version": "0.0.0",
 	"type": "module",
+	"npm": {
+		"publish": false
+	},
 	"files": [
 		"dist"
 	],
@@ -17,9 +20,11 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"release": "release-it"
 	},
 	"devDependencies": {
+		"release-it": "^17.4.0",
 		"typescript": "^5.2.2",
 		"vite": "^5.2.0"
 	},

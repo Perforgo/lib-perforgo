@@ -1,0 +1,13 @@
+{
+	"git": {
+		"commitMessage": "v${version}"
+	},
+	"github": {
+		"release": true,
+		"github.web": true,
+		"releaseName": "v${version}"
+	},
+	"npm": {
+		"publish": false
+	}
+}
