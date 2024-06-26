@@ -12,7 +12,7 @@
 	"target": "esnext",
 	"main": "./dist/core.umd.cjs",
 	"module": "./dist/core.js",
-	"types": "./dist/index.d.ts",
+	"types": "./dist/perforgo.d.ts",
 	"exports": {
 		".": {
 			"import": "./dist/core.js",
