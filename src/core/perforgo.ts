@@ -57,9 +57,7 @@ export default class Perforgo implements PerforgoParams {
 
 		this.domainName = params?.domainName || window.location.hostname;
 
-		console.log(import.meta.env.MODE);
-
-		if (import.meta.env.MODE === "production") {
+		if (!import.meta.env.DEV) {
 			this._apiEndpoint =
 				"https://api.perforgo.com/api/app/" +
 				this.appId +

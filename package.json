@@ -21,7 +21,8 @@
 	},
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build",
+		"build:dev": "tsc && NODE_ENV=development vite build",
+		"build:prod": "tsc && vite build",
 		"preview": "vite preview",
 		"release": "release-it"
 	},
