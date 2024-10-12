@@ -231,7 +231,7 @@ export default class Perforgo implements PerforgoParams {
 	}
 
 	#toKB(octets: number) {
-		return octets * 8 * 1024;
+		return octets / 1024;
 	}
 
 	#buildResourceMonitoringPayload(entry: PerformanceResourceTiming) {
