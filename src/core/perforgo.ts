@@ -32,7 +32,7 @@ interface ResourceMonitoringResultToSend {
 	resource_path: string;
 	hostname: string;
 	type: "img";
-	encoded_size_kb: number;
+	transfer_size: number;
 	page_path: string;
 }
 
@@ -93,7 +93,7 @@ export default class Perforgo implements PerforgoParams {
 		/**
 		 *
 		 * LCP only reported on initial page load.
-		 * LCP requires interaction with page before being reported
+		 * LCP requires interaction with page before being reported.
 		 * https://web.dev/articles/vitals-spa-faq
 		 *
 		 */
@@ -231,7 +231,7 @@ export default class Perforgo implements PerforgoParams {
 	}
 
 	#toKB(octets: number) {
-		return octets / 1024;
+		return octets;
 	}
 
 	#buildResourceMonitoringPayload(entry: PerformanceResourceTiming) {
@@ -250,7 +250,7 @@ export default class Perforgo implements PerforgoParams {
 				resource_path: new URL(entry.name).pathname,
 				hostname: this.domainName,
 				type: entry.initiatorType,
-				encoded_size_kb: this.#toKB(entry.encodedBodySize),
+				transfer_size: this.#toKB(entry.transferSize),
 				page_path: window.location.pathname,
 			});
 		}
