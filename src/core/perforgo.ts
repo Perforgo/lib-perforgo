@@ -36,6 +36,8 @@ interface ResourceMonitoringResultToSend {
 	page_path: string;
 }
 
+type WebVitalMetric = FCPMetric | LCPMetric | FIDMetric | TTFBMetric
+
 type ResourceMonitoringResultsToSend = Array<ResourceMonitoringResultToSend>;
 
 export default class Perforgo implements PerforgoParams {
@@ -49,6 +51,9 @@ export default class Perforgo implements PerforgoParams {
 	requestThrottleMs: number;
 	sending: boolean;
 	sentResults: ResourceMonitoringResultsToSend;
+	webVitalsQueue: Set<unknown>
+	resourcesEndpoint: string
+	webVitalsEndpoint: string
 
 	constructor(params: PerforgoParams) {
 		this.appId = params.appId;
@@ -57,16 +62,22 @@ export default class Perforgo implements PerforgoParams {
 
 		this.domainName = params?.domainName || window.location.hostname;
 
+		this.webVitalsQueue = new Set();
+
+		this.resourcesEndpoint = '/resources/add'
+
+		this.webVitalsEndpoint = '/web-vitals/add'
+
 		if (!import.meta.env.DEV) {
 			this._apiEndpoint =
 				"https://api.perforgo.com/api/app/" +
 				this.appId +
-				"/analytics/resources/add";
+				"/analytics";
 		} else {
 			this._apiEndpoint =
 				"http://localhost:8003/api/app/" +
 				this.appId +
-				"/analytics/resources/add";
+				"/analytics";
 		}
 
 		this.resourceMonitoringResultsToSend = [];
@@ -97,10 +108,29 @@ export default class Perforgo implements PerforgoParams {
 		 * https://web.dev/articles/vitals-spa-faq
 		 *
 		 */
-		if (this.enabledFeatures.lcp) onLCP((e) => this.#sendToAnalytics(e));
-		if (this.enabledFeatures.fcp) onFCP((e) => this.#sendToAnalytics(e));
-		if (this.enabledFeatures.fid) onFID((e) => this.#sendToAnalytics(e));
-		if (this.enabledFeatures.ttfb) onTTFB((e) => this.#sendToAnalytics(e));
+		if (this.enabledFeatures.lcp) onLCP((e) => this.#addToQueue(e));
+
+		if (this.enabledFeatures.fcp) {
+			if(import.meta.env.DEV) {
+				console.warn('FCP is not yet enabled, skipping.')
+			}
+
+			// onFCP((e) => this.#addToQueue(e));
+		}
+		if (this.enabledFeatures.fid) {
+			if(import.meta.env.DEV) {
+				console.warn('FID is not yet enabled, skipping.')
+			}
+
+			// onFID((e) => this.#addToQueue(e));
+		}
+		if (this.enabledFeatures.ttfb) {
+			if(import.meta.env.DEV) {
+				console.warn('TTFB is not yet enabled, skipping')
+			}
+
+			// onTTFB((e) => this.#addToQueue(e));
+		}
 
 		if (this.enabledFeatures.resourceMonitoring) {
 			const observer = new PerformanceObserver((entries) => {
@@ -131,23 +161,17 @@ export default class Perforgo implements PerforgoParams {
 				this.requestThrottleMs
 			);
 		}
+
+		// Report all available metrics whenever the page is backgrounded or unloaded.
+		addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'hidden') {
+				this.#flushQueue();
+			}
+		});
 	}
 
 	get apiEndpoint() {
 		return this._apiEndpoint;
-	}
-
-	#sendToAnalytics(metric: LCPMetric | FCPMetric | FIDMetric | TTFBMetric) {
-		console.warn("Web vitals are not yet supported", metric);
-
-		// const body = JSON.stringify(metric)
-		// ;(navigator.sendBeacon &&
-		// 	navigator.sendBeacon(this.apiEndpoint, body)) ||
-		// 	fetch(this.apiEndpoint, {
-		// 		body,
-		// 		method: 'POST',
-		// 		keepalive: true,
-		// 	})
 	}
 
 	async #batchSendAnalytics(resultsToSend: ResourceMonitoringResultsToSend) {
@@ -200,7 +224,7 @@ export default class Perforgo implements PerforgoParams {
 		this.sending = true;
 
 		try {
-			await fetch(this.apiEndpoint, {
+			await fetch(this.apiEndpoint + this.resourcesEndpoint, {
 				body,
 				method: "POST",
 				keepalive: true,
@@ -253,6 +277,24 @@ export default class Perforgo implements PerforgoParams {
 				transfer_size: this.#toKB(entry.transferSize),
 				page_path: window.location.pathname,
 			});
+		}
+	}
+
+	#addToQueue(metric: WebVitalMetric) {
+		this.webVitalsQueue.add(metric);
+	}
+
+	#flushQueue() {
+		if (this.webVitalsQueue.size > 0) {
+			// Replace with whatever serialization method you prefer.
+			// Note: JSON.stringify will likely include more data than you need.
+			const body = JSON.stringify([...this.webVitalsQueue]);
+		
+			// Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
+			(navigator.sendBeacon && navigator.sendBeacon(this.apiEndpoint + this.webVitalsEndpoint, body)) ||
+			fetch('/analytics', {body, method: 'POST', keepalive: true});
+		
+			this.webVitalsQueue.clear();
 		}
 	}
 }
