@@ -7,7 +7,7 @@ import {
   LCPMetric,
   FIDMetric,
   TTFBMetric,
-} from "web-vitals";
+} from "web-vitals/attribution";
 import { uid } from "uid";
 
 interface PerforgoFeatures {
