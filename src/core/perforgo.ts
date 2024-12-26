@@ -36,6 +36,11 @@ interface ResourceMonitoringResultToSend {
   page_path: string;
 }
 
+interface AdditionalWebVitalData {
+  hostname: string
+  page_path: string
+}
+
 type WebVitalMetric = FCPMetric | LCPMetric | FIDMetric | TTFBMetric;
 
 type ResourceMonitoringResultsToSend = Array<ResourceMonitoringResultToSend>;
@@ -104,7 +109,14 @@ export default class Perforgo implements PerforgoParams {
      * https://web.dev/articles/vitals-spa-faq
      *
      */
-    if (this.enabledFeatures.lcp) onLCP((e) => this.#addToQueue(e));
+    if (this.enabledFeatures.lcp) {
+      onLCP(
+        (e) => this.#addToQueue(e, {
+          hostname: window?.location?.hostname,
+          page_path: window?.location?.pathname
+        })
+      );
+    }
 
     if (this.enabledFeatures.fcp) {
       if (import.meta.env.DEV) {
@@ -271,8 +283,11 @@ export default class Perforgo implements PerforgoParams {
     }
   }
 
-  #addToQueue(metric: WebVitalMetric) {
-    this.webVitalsQueue.add(metric);
+  #addToQueue(metric: WebVitalMetric, additionalData: AdditionalWebVitalData) {
+    this.webVitalsQueue.add({
+      ...metric,
+      ...additionalData
+    });
   }
 
   #flushQueue() {
