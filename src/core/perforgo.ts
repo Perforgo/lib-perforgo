@@ -1,6 +1,6 @@
 import {
   onLCP,
-  // onTTFB,
+  onTTFB,
   // onFCP,
   // onFID,
   FCPMetric,
@@ -133,11 +133,10 @@ export default class Perforgo implements PerforgoParams {
       // onFID((e) => this.#addToQueue(e));
     }
     if (this.enabledFeatures.ttfb) {
-      if (import.meta.env.DEV) {
-        console.warn("TTFB is not yet enabled, skipping");
-      }
-
-      // onTTFB((e) => this.#addToQueue(e));
+      onTTFB((e) => this.#addToQueue(e, {
+        hostname: window?.location?.hostname,
+        page_path: window?.location?.pathname
+      }));
     }
 
     if (this.enabledFeatures.resourceMonitoring) {
