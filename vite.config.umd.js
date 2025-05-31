@@ -12,6 +12,7 @@ export default defineConfig({
     rollupOptions: {
       external: ["@nuxt/kit"],
       output: {
+        exports: "default",
         globals: {
           "web-vitals": "webVitals",
           uid: "uid",
