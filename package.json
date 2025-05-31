@@ -21,8 +21,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build:dev": "tsc && NODE_ENV=development vite build",
-    "build:prod": "tsc && vite build",
+    "build:dev": "tsc && NODE_ENV=development vite build --config vite.config.es.js && vite build --config vite.config.umd.js",
+    "build:prod": "tsc && vite build --config vite.config.es.js && vite build --config vite.config.umd.js",
     "preview": "vite preview",
     "release": "release-it"
   },
