@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   build: {
     lib: {
-      entry: [resolve(__dirname, "lib/perforgo.js")],
+      entry: [resolve(__dirname, "lib/perforgo.umd.js")],
       name: "Perforgo",
       formats: ["umd"],
       fileName: () => "perforgo.umd.js",
