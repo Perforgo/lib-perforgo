@@ -78,7 +78,7 @@ export default class Perforgo implements PerforgoParams {
         "https://api.perforgo.com/api/app/" + this.appId + "/analytics";
     } else {
       this._apiEndpoint =
-        "http://localhost:8001/api/app/" + this.appId + "/analytics";
+        "http://localhost:8003/api/app/" + this.appId + "/analytics";
     }
 
     this.resourceMonitoringResultsToSend = [];

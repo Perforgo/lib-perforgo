@@ -1,39 +1,39 @@
 {
-	"name": "@perforgo/lib",
-	"private": false,
-	"version": "0.3.0",
-	"type": "module",
-	"npm": {
-		"publish": false
-	},
-	"files": [
-		"dist"
-	],
-	"target": "esnext",
-	"main": "./dist/core.umd.cjs",
-	"module": "./dist/core.js",
-	"types": "./dist/perforgo.d.ts",
-	"exports": {
-		".": {
-			"import": "./dist/core.js",
-			"require": "./dist/core.umd.cjs"
-		}
-	},
-	"scripts": {
-		"dev": "vite",
-		"build:dev": "tsc && NODE_ENV=development vite build",
-		"build:prod": "tsc && vite build",
-		"preview": "vite preview",
-		"release": "release-it"
-	},
-	"devDependencies": {
-		"release-it": "^17.4.0",
-		"typescript": "^5.2.2",
-		"vite": "^5.2.0",
-		"vite-plugin-dts": "^3.9.1"
-	},
-	"dependencies": {
-		"uid": "^2.0.2",
-		"web-vitals": "^4.2.0"
-	}
+  "name": "@perforgo/lib",
+  "private": false,
+  "version": "0.3.0",
+  "type": "module",
+  "npm": {
+    "publish": false
+  },
+  "files": [
+    "dist"
+  ],
+  "target": "esnext",
+  "main": "./dist/perforgo.umd.cjs",
+  "module": "./dist/perforgo.js",
+  "types": "./dist/perforgo.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/perforgo.js",
+      "require": "./dist/perforgo.umd.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build:dev": "tsc && NODE_ENV=development vite build",
+    "build:prod": "tsc && vite build",
+    "preview": "vite preview",
+    "release": "release-it"
+  },
+  "devDependencies": {
+    "release-it": "^17.4.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vite-plugin-dts": "^3.9.1"
+  },
+  "dependencies": {
+    "uid": "^2.0.2",
+    "web-vitals": "^4.2.0"
+  }
 }
