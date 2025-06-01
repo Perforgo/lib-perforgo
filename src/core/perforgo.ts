@@ -10,6 +10,11 @@ import {
 } from "web-vitals/attribution";
 import { uid } from "uid";
 
+interface ExcludeDomain {
+  domainName: string;
+  matchType?: "exact" | "includes";
+}
+
 interface PerforgoFeatures {
   lcp?: boolean;
   fid?: boolean;
@@ -17,6 +22,7 @@ interface PerforgoFeatures {
   ttfb?: boolean;
   resourceMonitoring?: {
     images: boolean;
+    excludedDomains: ExcludeDomain[];
   };
 }
 
@@ -37,8 +43,8 @@ interface ResourceMonitoringResultToSend {
 }
 
 interface AdditionalWebVitalData {
-  hostname: string
-  page_path: string
+  hostname: string;
+  page_path: string;
 }
 
 type WebVitalMetric = FCPMetric | LCPMetric | FIDMetric | TTFBMetric;
@@ -110,10 +116,10 @@ export default class Perforgo implements PerforgoParams {
      *
      */
     if (this.enabledFeatures.lcp) {
-      onLCP(
-        (e) => this.#addToQueue(e, {
+      onLCP((e) =>
+        this.#addToQueue(e, {
           hostname: window?.location?.hostname,
-          page_path: window?.location?.pathname
+          page_path: window?.location?.pathname,
         })
       );
     }
@@ -133,10 +139,12 @@ export default class Perforgo implements PerforgoParams {
       // onFID((e) => this.#addToQueue(e));
     }
     if (this.enabledFeatures.ttfb) {
-      onTTFB((e) => this.#addToQueue(e, {
-        hostname: window?.location?.hostname,
-        page_path: window?.location?.pathname
-      }));
+      onTTFB((e) =>
+        this.#addToQueue(e, {
+          hostname: window?.location?.hostname,
+          page_path: window?.location?.pathname,
+        })
+      );
     }
 
     if (this.enabledFeatures.resourceMonitoring) {
@@ -260,6 +268,23 @@ export default class Perforgo implements PerforgoParams {
     return octets;
   }
 
+  #isTrackableResourceDomain(domainName: string) {
+    if (!this.enabledFeatures.resourceMonitoring?.excludedDomains?.length)
+      return true;
+
+    return (
+      this.enabledFeatures.resourceMonitoring?.excludedDomains.filter(
+        (excludedDomain) => {
+          if (excludedDomain.matchType === "includes") {
+            return !domainName.includes(excludedDomain.domainName);
+          } else {
+            return excludedDomain.domainName !== domainName;
+          }
+        }
+      ).length > 0
+    );
+  }
+
   #buildResourceMonitoringPayload(entry: PerformanceResourceTiming) {
     this.#resetTimeout();
 
@@ -268,7 +293,8 @@ export default class Perforgo implements PerforgoParams {
 
     if (
       this.enabledFeatures?.resourceMonitoring?.images &&
-      entry.initiatorType === "img"
+      entry.initiatorType === "img" &&
+      this.#isTrackableResourceDomain(new URL(entry.name).hostname)
     ) {
       this.resourceMonitoringResultsToSend.push({
         perforgo_resource_id: uid(),
@@ -285,7 +311,7 @@ export default class Perforgo implements PerforgoParams {
   #addToQueue(metric: WebVitalMetric, additionalData: AdditionalWebVitalData) {
     this.webVitalsQueue.add({
       ...metric,
-      ...additionalData
+      ...additionalData,
     });
   }
 
@@ -299,7 +325,7 @@ export default class Perforgo implements PerforgoParams {
       (navigator.sendBeacon &&
         navigator.sendBeacon(
           this.apiEndpoint + this.webVitalsEndpoint,
-          new Blob([body], { type: 'application/json' })
+          new Blob([body], { type: "application/json" })
         )) ||
         fetch(this.apiEndpoint + this.webVitalsEndpoint, {
           body,
