@@ -3,9 +3,10 @@ import {
   onTTFB,
   // onFCP,
   // onFID,
+  onINP,
   FCPMetric,
   LCPMetric,
-  FIDMetric,
+  INPMetric,
   TTFBMetric,
 } from "web-vitals/attribution";
 import { uid } from "uid";
@@ -17,7 +18,7 @@ interface ExcludeDomain {
 
 interface PerforgoFeatures {
   lcp?: boolean;
-  fid?: boolean;
+  inp?: boolean;
   fcp?: boolean;
   ttfb?: boolean;
   resourceMonitoring?: {
@@ -47,7 +48,7 @@ interface AdditionalWebVitalData {
   page_path: string;
 }
 
-type WebVitalMetric = FCPMetric | LCPMetric | FIDMetric | TTFBMetric;
+type WebVitalMetric = FCPMetric | LCPMetric | INPMetric | TTFBMetric;
 
 type ResourceMonitoringResultsToSend = Array<ResourceMonitoringResultToSend>;
 
@@ -131,13 +132,16 @@ export default class Perforgo implements PerforgoParams {
 
       // onFCP((e) => this.#addToQueue(e));
     }
-    if (this.enabledFeatures.fid) {
-      if (import.meta.env.DEV) {
-        console.warn("FID is not yet enabled, skipping.");
-      }
 
-      // onFID((e) => this.#addToQueue(e));
+    if (this.enabledFeatures.inp) {
+      onINP((e) =>
+        this.#addToQueue(e, {
+          hostname: window?.location?.hostname,
+          page_path: window?.location?.pathname,
+        })
+      );
     }
+
     if (this.enabledFeatures.ttfb) {
       onTTFB((e) =>
         this.#addToQueue(e, {
