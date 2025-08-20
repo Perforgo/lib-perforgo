@@ -2,12 +2,11 @@ import {
   onLCP,
   onTTFB,
   // onFCP,
-  // onFID,
   onINP,
   FCPMetric,
-  LCPMetric,
-  INPMetric,
-  TTFBMetric,
+  TTFBMetricWithAttribution,
+  LCPMetricWithAttribution,
+  INPMetricWithAttribution,
 } from "web-vitals/attribution";
 import { uid } from "uid";
 
@@ -16,18 +15,24 @@ interface ExcludeDomain {
   matchType?: "exact" | "includes";
 }
 
-interface PerforgoFeatures {
+export interface PerforgoFeatures {
   lcp?: boolean;
   inp?: boolean;
+
+  /**
+   * @deprecated Use `inp` instead
+   */
+  fid?: boolean;
+
   fcp?: boolean;
   ttfb?: boolean;
   resourceMonitoring?: {
-    images: boolean;
-    excludedDomains: ExcludeDomain[];
+    images?: boolean;
+    excludedDomains?: ExcludeDomain[];
   };
 }
 
-interface PerforgoParams {
+export interface PerforgoParams {
   appId: string;
   enabledFeatures?: PerforgoFeatures;
   domainName?: string;
@@ -48,7 +53,13 @@ interface AdditionalWebVitalData {
   page_path: string;
 }
 
-type WebVitalMetric = FCPMetric | LCPMetric | INPMetric | TTFBMetric;
+type WebVitalMetric =
+  | FCPMetric
+  | LCPMetricWithAttribution
+  | INPMetricWithAttribution
+  | TTFBMetricWithAttribution;
+
+type WebVitalMetricWithAdditionalData = WebVitalMetric & AdditionalWebVitalData;
 
 type ResourceMonitoringResultsToSend = Array<ResourceMonitoringResultToSend>;
 
@@ -63,7 +74,7 @@ export default class Perforgo implements PerforgoParams {
   requestThrottleMs: number;
   sending: boolean;
   sentResults: ResourceMonitoringResultsToSend;
-  webVitalsQueue: Set<unknown>;
+  webVitalsQueue: Set<WebVitalMetricWithAdditionalData>;
   resourcesEndpoint: string;
   webVitalsEndpoint: string;
 
@@ -127,18 +138,21 @@ export default class Perforgo implements PerforgoParams {
 
     if (this.enabledFeatures.fcp) {
       if (import.meta.env.DEV) {
-        console.warn("FCP is not yet enabled, skipping.");
+        console.warn("FCP is not yet supported, skipping.");
       }
 
       // onFCP((e) => this.#addToQueue(e));
     }
 
-    if (this.enabledFeatures.inp) {
-      onINP((e) =>
-        this.#addToQueue(e, {
-          hostname: window?.location?.hostname,
-          page_path: window?.location?.pathname,
-        })
+    if (this.enabledFeatures.inp || this.enabledFeatures.fid) {
+      onINP(
+        (e) => {
+          this.#addToQueue(e, {
+            hostname: window?.location?.hostname,
+            page_path: window?.location?.pathname,
+          });
+        },
+        { reportAllChanges: true }
       );
     }
 
@@ -319,11 +333,65 @@ export default class Perforgo implements PerforgoParams {
     });
   }
 
+  #serialiseWebVital(metric: WebVitalMetricWithAdditionalData) {
+    const common = {
+      id: metric.id,
+      name: metric.name,
+      value: metric.value,
+      delta: metric.delta,
+      rating: metric.rating,
+      hostname: metric.hostname,
+      page_path: metric.page_path,
+    };
+
+    if (metric.name === "LCP") {
+      return {
+        ...common,
+        navigationType: metric.navigationType,
+        attribution: {
+          timeToFirstByte: metric.attribution.timeToFirstByte,
+        },
+        entries: metric.entries.map((entry) => {
+          return {
+            loadTime: entry.loadTime,
+            renderTime: entry.renderTime,
+            startTime: entry.startTime,
+            entryType: entry.entryType,
+          };
+        }),
+      };
+    }
+
+    if (metric.name === "TTFB") {
+      return {
+        ...common,
+        navigationType: metric.navigationType,
+        attribution: {
+          requestDuration: metric.attribution.requestDuration,
+        },
+      };
+    }
+
+    if (metric.name === "INP") {
+      return {
+        ...common,
+        interactionType: metric.attribution.interactionType,
+      };
+    }
+
+    return {
+      ...common,
+      ...metric,
+    };
+  }
+
   #flushQueue() {
     if (this.webVitalsQueue.size > 0) {
       // Replace with whatever serialization method you prefer.
       // Note: JSON.stringify will likely include more data than you need.
-      const body = JSON.stringify([...this.webVitalsQueue]);
+      const body = JSON.stringify(
+        Array.from(this.webVitalsQueue).flatMap(this.#serialiseWebVital)
+      );
 
       // Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
       (navigator.sendBeacon &&
