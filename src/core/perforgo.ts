@@ -1,12 +1,12 @@
 import {
   onLCP,
   onTTFB,
-  // onFCP,
   onINP,
-  FCPMetric,
+  onCLS,
   TTFBMetricWithAttribution,
   LCPMetricWithAttribution,
   INPMetricWithAttribution,
+  CLSMetricWithAttribution,
 } from "web-vitals/attribution";
 import { uid } from "uid";
 
@@ -26,6 +26,7 @@ export interface PerforgoFeatures {
 
   fcp?: boolean;
   ttfb?: boolean;
+  cls?: boolean;
   resourceMonitoring?: {
     images?: boolean;
     excludedDomains?: ExcludeDomain[];
@@ -54,10 +55,10 @@ interface AdditionalWebVitalData {
 }
 
 type WebVitalMetric =
-  | FCPMetric
   | LCPMetricWithAttribution
   | INPMetricWithAttribution
-  | TTFBMetricWithAttribution;
+  | TTFBMetricWithAttribution
+  | CLSMetricWithAttribution;
 
 type WebVitalMetricWithAdditionalData = WebVitalMetric & AdditionalWebVitalData;
 
@@ -158,6 +159,15 @@ export default class Perforgo implements PerforgoParams {
 
     if (this.enabledFeatures.ttfb) {
       onTTFB((e) =>
+        this.#addToQueue(e, {
+          hostname: window?.location?.hostname,
+          page_path: window?.location?.pathname,
+        })
+      );
+    }
+
+    if (this.enabledFeatures.cls) {
+      onCLS((e) =>
         this.#addToQueue(e, {
           hostname: window?.location?.hostname,
           page_path: window?.location?.pathname,
@@ -379,16 +389,16 @@ export default class Perforgo implements PerforgoParams {
       };
     }
 
-    return {
-      ...common,
-      ...metric,
-    };
+    if (metric.name === "CLS") {
+      return {
+        ...common,
+        value: metric.value,
+      };
+    }
   }
 
   #flushQueue() {
     if (this.webVitalsQueue.size > 0) {
-      // Replace with whatever serialization method you prefer.
-      // Note: JSON.stringify will likely include more data than you need.
       const body = JSON.stringify(
         Array.from(this.webVitalsQueue).flatMap(this.#serialiseWebVital)
       );
