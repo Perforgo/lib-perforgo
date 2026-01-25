@@ -128,7 +128,7 @@ export default class Perforgo implements PerforgoParams {
      * https://web.dev/articles/vitals-spa-faq
      *
      */
-    if (this.enabledFeatures.lcp) {
+    if (this.enabledFeatures?.lcp ?? true) {
       onLCP((e) =>
         this.#addToQueue(e, {
           hostname: window?.location?.hostname,
@@ -137,15 +137,7 @@ export default class Perforgo implements PerforgoParams {
       );
     }
 
-    if (this.enabledFeatures.fcp) {
-      if (import.meta.env.DEV) {
-        console.warn("FCP is not yet supported, skipping.");
-      }
-
-      // onFCP((e) => this.#addToQueue(e));
-    }
-
-    if (this.enabledFeatures.inp || this.enabledFeatures.fid) {
+    if ((this.enabledFeatures?.inp || this.enabledFeatures?.fid) ?? true) {
       onINP(
         (e) => {
           this.#addToQueue(e, {
@@ -157,7 +149,7 @@ export default class Perforgo implements PerforgoParams {
       );
     }
 
-    if (this.enabledFeatures.ttfb) {
+    if (this.enabledFeatures?.ttfb ?? true) {
       onTTFB((e) =>
         this.#addToQueue(e, {
           hostname: window?.location?.hostname,
@@ -166,7 +158,7 @@ export default class Perforgo implements PerforgoParams {
       );
     }
 
-    if (this.enabledFeatures.cls) {
+    if (this.enabledFeatures?.cls ?? true) {
       onCLS((e) =>
         this.#addToQueue(e, {
           hostname: window?.location?.hostname,
@@ -175,7 +167,7 @@ export default class Perforgo implements PerforgoParams {
       );
     }
 
-    if (this.enabledFeatures.resourceMonitoring) {
+    if (this.enabledFeatures?.resourceMonitoring) {
       const observer = new PerformanceObserver((entries) => {
         entries.getEntries().forEach((entry: PerformanceEntry) => {
           if (entry.entryType === "resource") {
