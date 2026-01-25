@@ -27,10 +27,12 @@ export interface PerforgoFeatures {
   fcp?: boolean;
   ttfb?: boolean;
   cls?: boolean;
-  resourceMonitoring?: {
-    images?: boolean;
-    excludedDomains?: ExcludeDomain[];
-  };
+  resourceMonitoring?:
+    | {
+        images?: boolean;
+        excludedDomains?: ExcludeDomain[];
+      }
+    | boolean;
 }
 
 export interface PerforgoParams {
@@ -44,7 +46,7 @@ interface ResourceMonitoringResultToSend {
   resource_domain: string;
   resource_path: string;
   hostname: string;
-  type: "img";
+  type: PerformanceResourceTiming["initiatorType"];
   transfer_size: number;
   page_path: string;
 }
@@ -289,20 +291,24 @@ export default class Perforgo implements PerforgoParams {
   }
 
   #isTrackableResourceDomain(domainName: string) {
-    if (!this.enabledFeatures.resourceMonitoring?.excludedDomains?.length)
+    if (this.enabledFeatures?.resourceMonitoring === true) {
       return true;
+    } else if (typeof this.enabledFeatures?.resourceMonitoring === "object") {
+      if (!this.enabledFeatures.resourceMonitoring?.excludedDomains?.length)
+        return true;
 
-    return (
-      this.enabledFeatures.resourceMonitoring?.excludedDomains.filter(
-        (excludedDomain) => {
-          if (excludedDomain.matchType === "includes") {
-            return !domainName.includes(excludedDomain.domainName);
-          } else {
-            return excludedDomain.domainName !== domainName;
+      return (
+        this.enabledFeatures.resourceMonitoring?.excludedDomains.filter(
+          (excludedDomain) => {
+            if (excludedDomain.matchType === "includes") {
+              return !domainName.includes(excludedDomain.domainName);
+            } else {
+              return excludedDomain.domainName !== domainName;
+            }
           }
-        }
-      ).length > 0
-    );
+        ).length > 0
+      );
+    }
   }
 
   #buildResourceMonitoringPayload(entry: PerformanceResourceTiming) {
@@ -311,10 +317,16 @@ export default class Perforgo implements PerforgoParams {
     // The result was cached — do not measure
     if (entry.transferSize === 0 && entry.decodedBodySize > 0) return;
 
+    /**
+     * Only send if resource monitoring is enable through object or boolean
+     * and if the resource type is an image.
+     */
     if (
-      this.enabledFeatures?.resourceMonitoring?.images &&
-      entry.initiatorType === "img" &&
-      this.#isTrackableResourceDomain(new URL(entry.name).hostname)
+      (this.enabledFeatures?.resourceMonitoring === true ||
+        (typeof this.enabledFeatures?.resourceMonitoring === "object" &&
+          this.enabledFeatures?.resourceMonitoring?.images &&
+          this.#isTrackableResourceDomain(new URL(entry.name).hostname))) &&
+      entry.initiatorType === "img"
     ) {
       this.resourceMonitoringResultsToSend.push({
         perforgo_resource_id: uid(),
