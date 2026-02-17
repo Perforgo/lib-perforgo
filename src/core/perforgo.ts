@@ -39,7 +39,6 @@ export interface PerforgoParams {
   appId: string;
   enabledFeatures?: PerforgoFeatures;
   domainName?: string;
-  useIngestionService?: boolean;
 }
 
 interface ResourceMonitoringResultToSend {
@@ -79,8 +78,6 @@ export default class Perforgo implements PerforgoParams {
   sending: boolean;
   sentResults: ResourceMonitoringResultsToSend;
   webVitalsQueue: Set<WebVitalMetricWithAdditionalData>;
-  resourcesEndpoint: string;
-  webVitalsEndpoint: string;
 
   constructor(params: PerforgoParams) {
     this.appId = params.appId;
@@ -91,29 +88,10 @@ export default class Perforgo implements PerforgoParams {
 
     this.webVitalsQueue = new Set();
 
-    this.resourcesEndpoint = "/resources/add";
-
-    this.webVitalsEndpoint = "/web-vitals/add";
-
-    if (params.useIngestionService) {
-      this.resourcesEndpoint = "";
-      this.webVitalsEndpoint = "";
-    }
-
     if (!import.meta.env.DEV) {
-      if (params.useIngestionService) {
-        this._apiEndpoint = "https://ingest.perforgo.com/api/events";
-      } else {
-        this._apiEndpoint =
-          "https://api.perforgo.com/api/app/" + this.appId + "/analytics";
-      }
+      this._apiEndpoint = "https://ingest.perforgo.com/api/events";
     } else {
-      if (params.useIngestionService) {
-        this._apiEndpoint = "http://localhost:3000/api/events";
-      } else {
-        this._apiEndpoint =
-          "http://localhost:8003/api/app/" + this.appId + "/analytics";
-      }
+      this._apiEndpoint = "http://localhost:3000/api/events";
     }
 
     this.resourceMonitoringResultsToSend = [];
@@ -276,7 +254,7 @@ export default class Perforgo implements PerforgoParams {
     this.sending = true;
 
     try {
-      await fetch(this.apiEndpoint + this.resourcesEndpoint, {
+      await fetch(this.apiEndpoint, {
         body,
         method: "POST",
         keepalive: true,
@@ -427,8 +405,7 @@ export default class Perforgo implements PerforgoParams {
         data: Array.from(this.webVitalsQueue).flatMap(this.#serialiseWebVital),
       });
 
-      // Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
-      fetch(this.apiEndpoint + this.webVitalsEndpoint, {
+      fetch(this.apiEndpoint, {
         body,
         method: "POST",
         keepalive: true,
