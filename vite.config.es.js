@@ -4,6 +4,7 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
   build: {
+    target: "es2015",
     lib: {
       entry: [resolve(__dirname, "lib/perforgo.js")],
       name: "Perforgo",
