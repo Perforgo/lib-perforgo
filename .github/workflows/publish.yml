@@ -19,6 +19,12 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
           scope: "@perforgo"
+      - name: Authenticate npm via OIDC
+        run: |
+          npm login --auth-type=oidc --scope=@perforgo --registry=https://registry.npmjs.org
+
       - run: npm install
+
       - run: npm run build:prod
+
       - run: npm publish --access public
