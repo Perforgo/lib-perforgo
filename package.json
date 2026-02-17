@@ -13,6 +13,10 @@
   "main": "./dist/perforgo.umd.cjs",
   "module": "./dist/perforgo.js",
   "types": "./dist/perforgo.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Perforgo/lib-perforgo"
+  },
   "exports": {
     ".": {
       "import": "./dist/perforgo.js",
