@@ -4,16 +4,19 @@ on:
   release:
     types: ["published"]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   publish:
-    name: Publish to NPM
+    name: Publish to NPM via OICD
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "18.x"
+          node-version: "20"
           registry-url: "https://registry.npmjs.org"
           scope: "@perforgo"
       - run: npm install
