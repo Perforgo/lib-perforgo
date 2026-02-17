@@ -39,6 +39,7 @@ export interface PerforgoParams {
   appId: string;
   enabledFeatures?: PerforgoFeatures;
   domainName?: string;
+  useIngestionService?: boolean;
 }
 
 interface ResourceMonitoringResultToSend {
@@ -94,12 +95,25 @@ export default class Perforgo implements PerforgoParams {
 
     this.webVitalsEndpoint = "/web-vitals/add";
 
+    if (params.useIngestionService) {
+      this.resourcesEndpoint = "";
+      this.webVitalsEndpoint = "";
+    }
+
     if (!import.meta.env.DEV) {
-      this._apiEndpoint =
-        "https://api.perforgo.com/api/app/" + this.appId + "/analytics";
+      if (params.useIngestionService) {
+        this._apiEndpoint = "https://ingest.perforgo.com/api/events";
+      } else {
+        this._apiEndpoint =
+          "https://api.perforgo.com/api/app/" + this.appId + "/analytics";
+      }
     } else {
-      this._apiEndpoint =
-        "http://localhost:8003/api/app/" + this.appId + "/analytics";
+      if (params.useIngestionService) {
+        this._apiEndpoint = "http://localhost:3000/api/events";
+      } else {
+        this._apiEndpoint =
+          "http://localhost:8003/api/app/" + this.appId + "/analytics";
+      }
     }
 
     this.resourceMonitoringResultsToSend = [];
@@ -251,7 +265,11 @@ export default class Perforgo implements PerforgoParams {
       return;
     }
 
-    body = JSON.stringify(deduplicatedResultsToSend);
+    body = JSON.stringify({
+      appId: this.appId,
+      group_type: "resource",
+      data: deduplicatedResultsToSend,
+    });
 
     if (this.sending) return;
 
@@ -403,25 +421,22 @@ export default class Perforgo implements PerforgoParams {
 
   #flushQueue() {
     if (this.webVitalsQueue.size > 0) {
-      const body = JSON.stringify(
-        Array.from(this.webVitalsQueue).flatMap(this.#serialiseWebVital)
-      );
+      const body = JSON.stringify({
+        appId: this.appId,
+        group_type: "web_vitals",
+        data: Array.from(this.webVitalsQueue).flatMap(this.#serialiseWebVital),
+      });
 
       // Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
-      (navigator.sendBeacon &&
-        navigator.sendBeacon(
-          this.apiEndpoint + this.webVitalsEndpoint,
-          new Blob([body], { type: "application/json" })
-        )) ||
-        fetch(this.apiEndpoint + this.webVitalsEndpoint, {
-          body,
-          method: "POST",
-          keepalive: true,
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
+      fetch(this.apiEndpoint + this.webVitalsEndpoint, {
+        body,
+        method: "POST",
+        keepalive: true,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
 
       this.webVitalsQueue.clear();
     }
