@@ -27,7 +27,7 @@ npm install @perforgo/lib@latest
 2. Import the package into your JavaScript file
 
 ```
-import { Perforgo } from '@perforgo/lib'
+import Perforgo from '@perforgo/lib'
 ```
 
 3. Configure the Perforgo instance
