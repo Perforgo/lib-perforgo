@@ -49,6 +49,7 @@ interface ResourceMonitoringResultToSend {
   type: PerformanceResourceTiming["initiatorType"];
   transfer_size: number;
   page_path: string;
+  captured_at: string;
 }
 
 interface AdditionalWebVitalData {
@@ -109,7 +110,7 @@ export default class Perforgo implements PerforgoParams {
     if (!this.appId) {
       /* eslint-disable-next-line */
       console.error(
-        "You need to specify a Perforgo App ID. Analytics reporting is disabled."
+        "You need to specify a Perforgo App ID. Analytics reporting is disabled.",
       );
 
       return;
@@ -127,7 +128,7 @@ export default class Perforgo implements PerforgoParams {
         this.#addToQueue(e, {
           hostname: window?.location?.hostname,
           page_path: window?.location?.pathname,
-        })
+        }),
       );
     }
 
@@ -139,7 +140,7 @@ export default class Perforgo implements PerforgoParams {
             page_path: window?.location?.pathname,
           });
         },
-        { reportAllChanges: true }
+        { reportAllChanges: true },
       );
     }
 
@@ -148,7 +149,7 @@ export default class Perforgo implements PerforgoParams {
         this.#addToQueue(e, {
           hostname: window?.location?.hostname,
           page_path: window?.location?.pathname,
-        })
+        }),
       );
     }
 
@@ -157,7 +158,7 @@ export default class Perforgo implements PerforgoParams {
         this.#addToQueue(e, {
           hostname: window?.location?.hostname,
           page_path: window?.location?.pathname,
-        })
+        }),
       );
     }
 
@@ -184,7 +185,7 @@ export default class Perforgo implements PerforgoParams {
       this.timeoutId = setTimeout(
         async () =>
           await this.#batchSendAnalytics(this.resourceMonitoringResultsToSend),
-        this.requestThrottleMs
+        this.requestThrottleMs,
       );
     }
 
@@ -224,7 +225,7 @@ export default class Perforgo implements PerforgoParams {
         this.sentResults.findIndex(
           (sentResult) =>
             sentResult.perforgo_resource_id ===
-            resultToSend.perforgo_resource_id
+            resultToSend.perforgo_resource_id,
         ) >= 0
       ) {
         return false;
@@ -278,7 +279,7 @@ export default class Perforgo implements PerforgoParams {
     this.timeoutId = setTimeout(
       async () =>
         await this.#batchSendAnalytics(this.resourceMonitoringResultsToSend),
-      this.requestThrottleMs
+      this.requestThrottleMs,
     );
   }
 
@@ -301,7 +302,7 @@ export default class Perforgo implements PerforgoParams {
             } else {
               return excludedDomain.domainName !== domainName;
             }
-          }
+          },
         ).length > 0
       );
     }
@@ -332,6 +333,7 @@ export default class Perforgo implements PerforgoParams {
         type: entry.initiatorType,
         transfer_size: this.#toKB(entry.transferSize),
         page_path: window.location.pathname,
+        captured_at: new Date().toISOString(),
       });
     }
   }
@@ -352,6 +354,7 @@ export default class Perforgo implements PerforgoParams {
       rating: metric.rating,
       hostname: metric.hostname,
       page_path: metric.page_path,
+      captured_at: new Date().toISOString(),
     };
 
     if (metric.name === "LCP") {
