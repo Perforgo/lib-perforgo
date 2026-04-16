@@ -363,6 +363,7 @@ export default class Perforgo implements PerforgoParams {
         navigationType: metric.navigationType,
         attribution: {
           timeToFirstByte: metric.attribution.timeToFirstByte,
+          target: metric.attribution.target,
         },
         entries: metric.entries.map((entry) => {
           return {
@@ -386,9 +387,14 @@ export default class Perforgo implements PerforgoParams {
     }
 
     if (metric.name === "INP") {
+      console.log("Serialising INP metric with attribution:", metric);
+
       return {
         ...common,
-        interactionType: metric.attribution.interactionType,
+        attribution: {
+          target: metric.attribution.interactionTarget,
+          interactionType: metric.attribution.interactionType,
+        },
       };
     }
 
@@ -396,6 +402,9 @@ export default class Perforgo implements PerforgoParams {
       return {
         ...common,
         value: metric.value,
+        attribution: {
+          target: metric.attribution.largestShiftTarget,
+        },
       };
     }
   }
