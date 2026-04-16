@@ -387,8 +387,6 @@ export default class Perforgo implements PerforgoParams {
     }
 
     if (metric.name === "INP") {
-      console.log("Serialising INP metric with attribution:", metric);
-
       return {
         ...common,
         attribution: {
