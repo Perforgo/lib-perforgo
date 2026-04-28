@@ -162,7 +162,7 @@ export default class Perforgo implements PerforgoParams {
       );
     }
 
-    if (this.enabledFeatures?.resourceMonitoring) {
+    if (this.enabledFeatures?.resourceMonitoring ?? true) {
       const observer = new PerformanceObserver((entries) => {
         entries.getEntries().forEach((entry: PerformanceEntry) => {
           if (entry.entryType === "resource") {
@@ -288,7 +288,10 @@ export default class Perforgo implements PerforgoParams {
   }
 
   #isTrackableResourceDomain(domainName: string) {
-    if (this.enabledFeatures?.resourceMonitoring === true) {
+    if (
+      this.enabledFeatures?.resourceMonitoring == null ||
+      this.enabledFeatures.resourceMonitoring === true
+    ) {
       return true;
     } else if (typeof this.enabledFeatures?.resourceMonitoring === "object") {
       if (!this.enabledFeatures.resourceMonitoring?.excludedDomains?.length)
@@ -314,16 +317,14 @@ export default class Perforgo implements PerforgoParams {
     // The result was cached — do not measure
     if (entry.transferSize === 0 && entry.decodedBodySize > 0) return;
 
-    /**
-     * Only send if resource monitoring is enable through object or boolean
-     * and if the resource type is an image.
-     */
     if (
-      (this.enabledFeatures?.resourceMonitoring === true ||
-        (typeof this.enabledFeatures?.resourceMonitoring === "object" &&
-          this.enabledFeatures?.resourceMonitoring?.images &&
-          this.#isTrackableResourceDomain(new URL(entry.name).hostname))) &&
-      entry.initiatorType === "img"
+      this.enabledFeatures?.resourceMonitoring !== false &&
+      !(
+        typeof this.enabledFeatures?.resourceMonitoring === "object" &&
+        this.enabledFeatures.resourceMonitoring.images === false
+      ) &&
+      entry.initiatorType === "img" &&
+      this.#isTrackableResourceDomain(new URL(entry.name).hostname)
     ) {
       this.resourceMonitoringResultsToSend.push({
         perforgo_resource_id: uid(),
