@@ -79,6 +79,7 @@ export default class Perforgo implements PerforgoParams {
   sending: boolean;
   sentResults: ResourceMonitoringResultsToSend;
   webVitalsQueue: Set<WebVitalMetricWithAdditionalData>;
+  _initialised: boolean;
 
   constructor(params: PerforgoParams) {
     this.appId = params.appId;
@@ -104,9 +105,13 @@ export default class Perforgo implements PerforgoParams {
     this.sending = false;
 
     this.sentResults = [];
+
+    this._initialised = false;
   }
 
   init() {
+    if (this._initialised) return;
+
     if (!this.appId) {
       /* eslint-disable-next-line */
       console.error(
@@ -115,6 +120,8 @@ export default class Perforgo implements PerforgoParams {
 
       return;
     }
+
+    this._initialised = true;
 
     /**
      *
