@@ -58,7 +58,7 @@ const perforgo = new Perforgo({
         cls: boolean,
         resourceMonitoring: boolean | {
             images: boolean
-            excludedDomains: string
+            excludedDomains: string[]
         }
     }
 })
@@ -108,7 +108,7 @@ perforgo: {
         cls: boolean,
         resourceMonitoring: boolean | {
             images: boolean
-            excludedDomains: string
+            excludedDomains: string[]
         }
     }
 },
