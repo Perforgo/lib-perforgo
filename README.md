@@ -83,54 +83,9 @@ const perforgo = new Perforgo({
 
 ### Nuxt 3 Module
 
-We've developed a handy Nuxt 3 module which slots Perforgo neatly into the Nuxt 3 lifecycle.
+We've developed a handy Nuxt module which slots Perforgo neatly into the Nuxt lifecycle.
 
-_Note: We've only tested this on versions of Nuxt between 3.17 and less than Nuxt 4. Please raise an issue if it's not working on Nuxt 4 or less than 3.17._
-
-1. Install the package from NPM
-
-```
-npx nuxi module add @perforgo/nuxt
-```
-
-2. Add to modules array in nuxt.config.ts
-
-```
-modules: [
-    "@perforgo/nuxt"
-]
-```
-
-3. Configure the module by adding the Perforgo key to the nuxt.config.ts with the following:
-
-```
-perforgo: {
-    enabled: true,
-    appId: 'your-perforgo-generated-id',
-    domainName: 'your-domain.com'
-},
-```
-
-All events are sent by default but you can optionally configure which events you want to send:
-
-```
-perforgo: {
-    enabled: true,
-    appId: 'your-perforgo-generated-id',
-    domainName: 'your-domain.com',
-    enabledFeatures: {
-        lcp: boolean,
-        ttfb: boolean,
-        inp: boolean,
-        cls: boolean,
-        resourceMonitoring: boolean | {
-            images: boolean
-            excludedDomains: string[]
-            sampleRate: number
-        }
-    }
-},
-```
+You can view the package [here](https://github.com/Perforgo/nuxt-perforgo).
 
 ### Next.js (App Router)
 
