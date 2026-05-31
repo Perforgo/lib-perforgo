@@ -31,6 +31,7 @@ export interface PerforgoFeatures {
     | {
         images?: boolean;
         excludedDomains?: ExcludeDomain[];
+        sampleRate?: number;
       }
     | boolean;
 }
@@ -294,6 +295,13 @@ export default class Perforgo implements PerforgoParams {
     return octets;
   }
 
+  #getSampleRate() {
+    if (typeof this.enabledFeatures?.resourceMonitoring === "object") {
+      return this.enabledFeatures.resourceMonitoring.sampleRate ?? 0.1;
+    }
+    return 0.1;
+  }
+
   #isTrackableResourceDomain(domainName: string) {
     if (
       this.enabledFeatures?.resourceMonitoring == null ||
@@ -331,7 +339,8 @@ export default class Perforgo implements PerforgoParams {
         this.enabledFeatures.resourceMonitoring.images === false
       ) &&
       entry.initiatorType === "img" &&
-      this.#isTrackableResourceDomain(new URL(entry.name).hostname)
+      this.#isTrackableResourceDomain(new URL(entry.name).hostname) &&
+      Math.random() < this.#getSampleRate()
     ) {
       this.resourceMonitoringResultsToSend.push({
         perforgo_resource_id: uid(),

@@ -59,9 +59,30 @@ const perforgo = new Perforgo({
         resourceMonitoring: boolean | {
             images: boolean
             excludedDomains: string[]
+            sampleRate: number
         }
     }
 })
+```
+
+#### Resource monitoring sample rate
+
+When `resourceMonitoring` is enabled (either as `true` or as an object), image events are sampled at **10% by default** (`sampleRate: 0.1`). This prevents millions of image events from being recorded on high-traffic pages while still providing a representative indication of resource performance.
+
+You can increase the sample rate up to `1` (100%) using the object syntax:
+
+```
+resourceMonitoring: {
+    sampleRate: 1 // record every image event
+}
+```
+
+Or reduce it further for very high-traffic sites:
+
+```
+resourceMonitoring: {
+    sampleRate: 0.05 // record 5% of image events
+}
 ```
 
 ### Nuxt 3 Module
@@ -109,7 +130,10 @@ perforgo: {
         resourceMonitoring: boolean | {
             images: boolean
             excludedDomains: string[]
+            sampleRate: number
         }
     }
 },
 ```
+
+See [Resource monitoring sample rate](#resource-monitoring-sample-rate) for details on the default 10% sampling and how to adjust it.
