@@ -175,7 +175,7 @@ export default function RootLayout({ children }) {
 }
 ```
 
-#### Resource monitoring sample rate
+## Resource monitoring sample rate
 
 When `resourceMonitoring` is enabled (either as `true` or as an object), image events are sampled at **10% by default** (`sampleRate: 0.1`). This prevents millions of image events from being recorded on high-traffic pages and quickly consuming your Perforgo event quota while still providing a representative indication of resource performance.
 
